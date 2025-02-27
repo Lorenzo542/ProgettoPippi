@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Management</title>
+    <style>
+        .post { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Post Management</h1>
+
+    <!-- Form per aggiungere un post -->
+    <div>
+        <h2>Aggiungi un Nuovo Post</h2>
+        <form id="postForm">
+            <input type="text" id="title" placeholder="Titolo" required><br><br>
+            <textarea id="content" placeholder="Contenuto" required></textarea><br><br>
+            <button type="submit">Aggiungi Post</button>
+        </form>
+    </div>
+
+    <!-- Sezione per visualizzare i post -->
+    <div>
+        <h2>Lista dei Post</h2>
+        <div id="postsContainer"></div>
+    </div>
+
+    <script>
+        const postsContainer = document.getElementById('postsContainer');
+        const postForm = document.getElementById('postForm');
+
+        // Funzione per visualizzare i post
+        async function loadPosts() {
+            try {
+                const response = await fetch('http://localhost:3000/posts');
+                const posts = await response.json();
+                postsContainer.innerHTML = ''; // Pulisce la lista esistente
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.classList.add('post');
+                    postElement.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p>`;
+                    postsContainer.appendChild(postElement);
+                });
+            } catch (error) {
+                console.error('Errore nel caricamento dei post:', error);
+            }
+        }
+
+        // Funzione per aggiungere un post
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita il ricaricamento della pagina
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+
+                if (response.ok) {
+                    const newPost = await response.json();
+                    console.log('Post aggiunto:', newPost);
+                    loadPosts(); // Ricarica i post per visualizzare il nuovo post
+                }
+            } catch (error) {
+                console.error('Errore nell\'aggiungere il post:', error);
+            }
+
+            // Pulisci il form dopo l'invio
+            document.getElementById('title').value = '';
+            document.getElementById('content').value = '';
+        });
+
+        // Carica i post quando la pagina è pronta
+        window.onload = loadPosts;
+    </script>
+</body>
+</html>
